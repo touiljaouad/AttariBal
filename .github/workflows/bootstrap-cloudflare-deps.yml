@@ -8,6 +8,11 @@ on:
       - .github/workflows/bootstrap-cloudflare-deps.yml
       - package.json
       - package-lock.json
+      - src/**
+      - db/**
+      - drizzle.config.ts
+      - wrangler.jsonc
+      - open-next.config.ts
   workflow_dispatch:
 
 permissions:
