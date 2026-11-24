@@ -1,0 +1,45 @@
+name: Bootstrap Cloudflare dependencies
+
+on:
+  push:
+    branches:
+      - cloudflare-neon-r2-migration
+    paths:
+      - .github/workflows/bootstrap-cloudflare-deps.yml
+      - package.json
+      - package-lock.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    if: github.ref == 'refs/heads/cloudflare-neon-r2-migration' && !contains(github.event.head_commit.message || '', '[skip ci]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: cloudflare-neon-r2-migration
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Add PostgreSQL and Cloudflare tooling
+        run: |
+          npm install --save pg
+          npm install --save-dev @opennextjs/cloudflare@1.20.8 wrangler @types/pg
+
+      - name: Commit dependency manifest and lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: add Cloudflare runtime dependencies [skip ci]"
+            git push origin cloudflare-neon-r2-migration
+          fi
