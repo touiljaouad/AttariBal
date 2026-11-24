@@ -12,7 +12,7 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "REPLACE_WITH_CLOUDFLARE_HYPERDRIVE_ID"
+      "id": "f481666dbdf24d2d93f6a4b3b228e306"
     }
   ],
   "r2_buckets": [
