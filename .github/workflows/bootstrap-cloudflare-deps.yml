@@ -46,7 +46,7 @@ jobs:
         run: npm run lint
 
       - name: Build Cloudflare Worker
-        run: npm run build
+        run: npx opennextjs-cloudflare build
 
       - name: Commit dependency manifest and lockfile
         run: |
