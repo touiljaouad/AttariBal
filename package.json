@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv",
-    "verify:cloudflare": "npm run typecheck && npm run lint && npm run build"
+    "verify:cloudflare": "npm run typecheck && npm run lint && npm run build",
+    "ci:verify": "npm run typecheck && npm run lint && npm run build"
   },
   "dependencies": {
     "@netlify/blobs": "^11.1.9",
