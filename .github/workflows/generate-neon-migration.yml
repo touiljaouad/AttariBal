@@ -1,0 +1,37 @@
+name: Generate Neon database migration
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    if: github.ref == 'refs/heads/cloudflare-neon-r2-migration'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: cloudflare-neon-r2-migration
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Generate SQL from the project's Drizzle schema
+        run: npx drizzle-kit generate --name=initial_schema
+
+      - name: Upload generated migration for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: attaribal-neon-initial-migration
+          path: drizzle/
+          if-no-files-found: error
+          retention-days: 7
