@@ -34,6 +34,15 @@ jobs:
           npm install --save pg
           npm install --save-dev @opennextjs/cloudflare@1.20.8 wrangler @types/pg
 
+      - name: Verify TypeScript
+        run: npm run typecheck
+
+      - name: Verify lint
+        run: npm run lint
+
+      - name: Build Cloudflare Worker
+        run: npm run build
+
       - name: Commit dependency manifest and lockfile
         run: |
           git config user.name "github-actions[bot]"
