@@ -3,12 +3,15 @@ import { asc } from "drizzle-orm";
 import ProductFormClient from "@/components/ProductFormClient";
 import { db } from "@/db";
 import { brands, categories, stores } from "@/db/schema";
+import { ensureDefaultStores } from "@/lib/ensure-stores";
 import { getProductById } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Modifier un article" };
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
+  await ensureDefaultStores();
+
   const { id: rawId } = await params;
   const id = Number(rawId);
   if (!Number.isInteger(id)) notFound();
