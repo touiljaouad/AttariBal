@@ -2,11 +2,14 @@ import { asc } from "drizzle-orm";
 import ProductFormClient from "@/components/ProductFormClient";
 import { db } from "@/db";
 import { brands, categories, stores } from "@/db/schema";
+import { ensureDefaultStores } from "@/lib/ensure-stores";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Ajouter un article" };
 
 export default async function NewProductPage() {
+  await ensureDefaultStores();
+
   const [categoryRows, brandRows, storeRows] = await Promise.all([
     db.select({ id: categories.id, name: categories.name }).from(categories).orderBy(asc(categories.name)),
     db.select({ id: brands.id, name: brands.name }).from(brands).orderBy(asc(brands.name)),
