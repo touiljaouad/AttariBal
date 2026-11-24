@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { MapPin, Menu, MessageCircle, Phone, X } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
 import { InstagramIcon } from "@/components/SocialIcons";
@@ -13,7 +13,6 @@ export default function SiteHeader({ whatsappUrl = WHATSAPP_URL }: { whatsappUrl
   const { t } = useLanguage();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  useEffect(() => setOpen(false), [pathname]);
 
   const links = [
     { href: "/", label: t("nav.home") },
@@ -69,7 +68,7 @@ export default function SiteHeader({ whatsappUrl = WHATSAPP_URL }: { whatsappUrl
         <div className="border-t border-white/10 bg-[#0d0d0d] lg:hidden">
           <nav className="container-wide flex flex-col py-4">
             {[...links, { href: "/faq", label: t("nav.faq") }, { href: "/admin", label: t("nav.admin") }].map((link) => (
-              <Link key={link.href} href={link.href} className="border-b border-white/[0.06] py-3 text-sm uppercase tracking-[0.14em] text-white/75">
+              <Link key={link.href} href={link.href} onClick={() => setOpen(false)} className="border-b border-white/[0.06] py-3 text-sm uppercase tracking-[0.14em] text-white/75">
                 {link.label}
               </Link>
             ))}
