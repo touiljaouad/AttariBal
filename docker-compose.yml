@@ -1,0 +1,45 @@
+# Self-contained deployment: PostgreSQL + the Ataribal100original storefront.
+#
+#   docker compose up -d --build
+#   docker compose exec app npx drizzle-kit push     # first run only
+#   cat data/setup-token                             # read the setup token
+#
+# Then open http://YOUR_SERVER/setup once to create the admin account.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ataribal
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: app_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ataribal -d app_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://ataribal:${POSTGRES_PASSWORD}@db:5432/app_db
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      # Optional: set these to store photos in Supabase instead of the volume.
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET:-}
+      UPLOAD_DIR: /app/data/uploads
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./data:/app/data
+
+volumes:
+  db-data:
