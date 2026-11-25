@@ -12,7 +12,8 @@
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "f481666dbdf24d2d93f6a4b3b228e306"
+      "id": "f481666dbdf24d2d93f6a4b3b228e306",
+      "remote": true
     }
   ],
   "r2_buckets": [
