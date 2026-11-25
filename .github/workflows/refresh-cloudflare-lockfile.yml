@@ -1,0 +1,39 @@
+name: Refresh Cloudflare dependency lockfile
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfile:
+    if: github.ref == 'refs/heads/cloudflare-neon-r2-migration'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: cloudflare-neon-r2-migration
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Regenerate package-lock.json
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Commit updated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "package-lock.json is already up to date."
+          else
+            git commit -m "chore: refresh package lockfile for Cloudflare adapter"
+            git push origin HEAD:cloudflare-neon-r2-migration
+          fi
