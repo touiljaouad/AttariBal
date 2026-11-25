@@ -4,6 +4,7 @@ import { activityLog, admins } from "@/db/schema";
 import { clientIp, constantTimeEqual, jsonError, rateLimit, readJson } from "@/lib/api";
 import { adminsExist, createSession, hashPassword } from "@/lib/auth";
 import { getSetupToken } from "@/lib/setup-token";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,24 @@ const schema = z.object({
 export async function GET() {
   const exists = await adminsExist();
   const token = await getSetupToken();
-  return Response.json({ available: !exists, tokenConfigured: Boolean(token) });
+  let runtimeContextAvailable = false;
+  let runtimeSecretPresent = false;
+  try {
+    const env = getCloudflareContext().env as unknown as Record<string, unknown>;
+    runtimeContextAvailable = true;
+    runtimeSecretPresent = typeof env.ADMIN_SETUP_TOKEN === "string" && env.ADMIN_SETUP_TOKEN.length > 0;
+  } catch {
+    // Diagnostic only: never expose an exception or secret value.
+  }
+  return Response.json({
+    available: !exists,
+    tokenConfigured: Boolean(token),
+    diagnostics: {
+      runtimeContextAvailable,
+      runtimeSecretPresent,
+      processSecretPresent: Boolean(process.env.ADMIN_SETUP_TOKEN),
+    },
+  });
 }
 
 export async function POST(request: Request) {
