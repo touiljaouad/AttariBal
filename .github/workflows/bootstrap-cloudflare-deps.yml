@@ -37,7 +37,7 @@ jobs:
       - name: Add PostgreSQL and Cloudflare tooling
         run: |
           npm install --save pg
-          npm install --save-dev @opennextjs/cloudflare@1.20.8 wrangler @types/pg
+          npm install --save-dev @opennextjs/cloudflare@1.20.18 wrangler @types/pg
 
       - name: Verify TypeScript
         run: npm run typecheck
