@@ -36,6 +36,7 @@ jobs:
 
       - name: Add PostgreSQL and Cloudflare tooling
         run: |
+          npm uninstall --save-dev @opennextjs/cloudflare
           npm install --save pg @opennextjs/cloudflare@1.20.18
           npm install --save-dev wrangler @types/pg
 
