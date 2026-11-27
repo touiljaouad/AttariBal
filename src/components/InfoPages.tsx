@@ -29,7 +29,7 @@ export function AboutContent({ title, text, whatsappUrl }: { title: string; text
       <section className="section-pad">
         <div className="container-wide grid gap-12 lg:grid-cols-2 lg:items-center">
           <div className="relative aspect-[4/5] overflow-hidden border border-white/10">
-            <div role="img" aria-label="Intérieur élégant de la boutique AttariBal" className="absolute inset-0 bg-cover" style={{ backgroundImage: "url(/images/fashion-editorial-sheet.webp)", backgroundSize: "300% 200%", backgroundPosition: "100% 100%" }} />
+            <div role="img" aria-label="Intérieur élégant de la boutique AttariBal" className="absolute inset-0 bg-cover" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1200&q=85)", backgroundSize: "cover", backgroundPosition: "center" }} />
           </div>
           <div>
             <h2 className="display text-3xl">{text ? title : t("about.title")}</h2>
