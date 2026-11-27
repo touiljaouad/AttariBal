@@ -19,7 +19,7 @@ type Props = {
   instagramUrl: string;
 };
 
-const editorialImages = ["/images/hero-editorial.jpg", "/images/store-editorial.jpg", "/images/sneakers-editorial.jpg"];
+const categoryImagePositions = ["0% 0%", "50% 0%", "100% 0%", "0% 100%"];
 
 export default function HomeContent({ latest, featured, categories, brands, stores, whatsappUrl, instagramUrl }: Props) {
   const { t } = useLanguage();
@@ -71,7 +71,7 @@ export default function HomeContent({ latest, featured, categories, brands, stor
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
             {categories.slice(0, 10).map((category, index) => (
               <Link key={category.id} href={`/boutique?category=${category.id}`} className="group relative aspect-[4/5] overflow-hidden border border-white/10">
-                <Image src={editorialImages[index % editorialImages.length]} alt="" fill sizes="(max-width:768px) 50vw, 20vw" className="object-cover opacity-45 transition duration-700 group-hover:scale-110 group-hover:opacity-65" unoptimized />
+                <div aria-hidden="true" className="absolute inset-0 bg-cover opacity-65 transition duration-700 group-hover:scale-110 group-hover:opacity-85" style={{ backgroundImage: "url(/images/fashion-editorial-sheet.webp)", backgroundSize: "300% 200%", backgroundPosition: categoryImagePositions[index % categoryImagePositions.length] }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4">
                   <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">{String(category.count).padStart(2, "0")} {t("catalog.results")}</p>
@@ -144,7 +144,7 @@ export default function HomeContent({ latest, featured, categories, brands, stor
       <section className="section-pad border-b border-white/[0.06]">
         <div className="container-wide grid items-center gap-10 lg:grid-cols-2">
           <div className="relative h-[420px] overflow-hidden border border-white/10">
-            <Image src="/images/store-editorial.jpg" alt="" fill sizes="(max-width:1024px) 100vw, 50vw" className="object-cover opacity-80" unoptimized />
+            <div role="img" aria-label="Collection éditoriale AttariBal" className="absolute inset-0 bg-cover opacity-90" style={{ backgroundImage: "url(/images/fashion-editorial-sheet.webp)", backgroundSize: "300% 200%", backgroundPosition: "50% 100%" }} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-6 start-6"><p className="eyebrow">@atari_bal</p><p className="mt-2 text-lg font-bold">Instagram</p></div>
           </div>
