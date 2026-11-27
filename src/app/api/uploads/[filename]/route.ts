@@ -9,7 +9,7 @@ type R2BucketBinding = { get(key: string): Promise<R2Object | null> };
 
 export async function GET(_request: Request, context: { params: Promise<{ filename: string }> }) {
   const { filename } = await context.params;
-  if (!/^[a-f0-9-]+\\.(jpg|png|webp)$/i.test(filename)) return new Response("Not found", { status: 404 });
+  if (!/^[a-f0-9-]+\.(jpg|png|webp)$/i.test(filename)) return new Response("Not found", { status: 404 });
   const extension = filename.split(".").pop()!.toLowerCase();
   const headers = {
     "Content-Type": TYPES[extension],
