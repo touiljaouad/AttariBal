@@ -30,7 +30,7 @@ function categoryImageFor(name: string) {
     return image("photo-1584917865442-de89df76afd3");
   }
   if (/accessor|montre|watch|cap|casquette|lunette|belt|ceinture|إكسسوار|اكسسوارات/.test(value)) {
-    return image("photo-150963ука");
+    return image("photo-1523275335684-37898b6baf30");
   }
   return image("photo-1490481651871-ab68de25d43d");
 }
