@@ -32,3 +32,6 @@ Un article ne peut être publié que s'il possède au moins une photo et une qua
 - Le site est une vitrine : aucun paiement, commande ou livraison en ligne. Les clients vous contactent sur WhatsApp puis achètent en boutique.
 - Les informations saisies sont affichées telles quelles sur le site public (aucune traduction automatique).
 - Les photos sont enregistrées sur le serveur, pas dans le navigateur. Après publication, l'image reste disponible même si vous fermez l'ordinateur.
+
+
+<!-- Documentation-only commit to trigger the connected Cloudflare deployment after updating Worker secrets. -->

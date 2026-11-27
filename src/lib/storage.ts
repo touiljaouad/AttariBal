@@ -1,34 +1,42 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getStore } from "@netlify/blobs";
 
 /**
- * Pluggable persistent image storage.
- *
- *   - "netlify"   (default) stores images in Netlify Blobs and serves them
- *                 through /api/uploads/<filename>. Required on Netlify, where
- *                 the server filesystem is read-only and not persistent.
- *   - "local"     writes to UPLOAD_DIR or <project>/data/uploads and serves
- *                 through /api/uploads/<filename>. Used when UPLOAD_DIR is set
- *                 (VPS / Docker with a persistent volume).
- *   - "supabase"  uploads to a Supabase Storage bucket over its REST API. Use
- *                 this on serverless hosts (Vercel) where the filesystem is
- *                 ephemeral and uploaded photos would otherwise disappear.
- *
- * Selection is automatic when Supabase credentials are present, and can be
- * forced with IMAGE_STORAGE=netlify|local|supabase.
+ * Image storage adapters:
+ * - R2 is used automatically inside the Cloudflare Worker.
+ * - Netlify Blobs remains available as a temporary legacy-read fallback while
+ *   existing image objects are copied into R2.
+ * - Supabase and local disk remain available for existing non-Cloudflare use.
  */
+export type StorageKind = "r2" | "netlify" | "local" | "supabase";
 
-export type StorageKind = "netlify" | "local" | "supabase";
+type R2BucketBinding = {
+  put(key: string, value: ArrayBuffer | ArrayBufferView | ReadableStream, options?: {
+    httpMetadata?: { contentType?: string; cacheControl?: string };
+  }): Promise<unknown>;
+  get(key: string): Promise<{ body: ReadableStream; httpMetadata?: { contentType?: string } } | null>;
+  delete(key: string): Promise<void>;
+};
 
 const BLOB_STORE = "product-images";
+const LOCAL_PATTERN = /^\/api\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/i;
+
+function r2Bucket(): R2BucketBinding | null {
+  try {
+    const { env } = getCloudflareContext();
+    return (env as unknown as { PRODUCT_IMAGES?: R2BucketBinding }).PRODUCT_IMAGES ?? null;
+  } catch {
+    // Normal Next.js development/test runtime has no Worker context.
+    return null;
+  }
+}
 
 export function imageStore() {
   return getStore(BLOB_STORE);
 }
-
-const LOCAL_PATTERN = /^\/api\/uploads\/[a-f0-9-]+\.(jpg|png|webp)$/i;
 
 function supabaseConfig() {
   const url = process.env.SUPABASE_URL?.replace(/\/+$/, "");
@@ -40,7 +48,8 @@ function supabaseConfig() {
 
 export function storageKind(): StorageKind {
   const forced = process.env.IMAGE_STORAGE?.toLowerCase();
-  if (forced === "netlify" || forced === "local" || forced === "supabase") return forced;
+  if (forced === "r2" || forced === "netlify" || forced === "local" || forced === "supabase") return forced;
+  if (r2Bucket()) return "r2";
   if (supabaseConfig()) return "supabase";
   return process.env.UPLOAD_DIR ? "local" : "netlify";
 }
@@ -61,8 +70,23 @@ export function isAllowedImageUrl(url: string): boolean {
 
 export async function saveImage(buffer: Buffer, extension: string): Promise<string> {
   const filename = `${randomUUID()}.${extension}`;
+  const kind = storageKind();
 
-  if (storageKind() === "supabase") {
+  if (kind === "r2") {
+    const bucket = r2Bucket();
+    if (!bucket) throw new Error("Cloudflare R2 binding PRODUCT_IMAGES is unavailable.");
+    const contentType = extension === "jpg" ? "image/jpeg" : `image/${extension}`;
+    const data = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+    await bucket.put(filename, data, {
+      httpMetadata: {
+        contentType,
+        cacheControl: "public, max-age=31536000, immutable",
+      },
+    });
+    return `/api/uploads/${filename}`;
+  }
+
+  if (kind === "supabase") {
     const config = supabaseConfig();
     if (!config) throw new Error("Supabase storage is not configured.");
     const contentType = extension === "jpg" ? "image/jpeg" : `image/${extension}`;
@@ -82,7 +106,7 @@ export async function saveImage(buffer: Buffer, extension: string): Promise<stri
     return `${config.url}/storage/v1/object/public/${config.bucket}/${filename}`;
   }
 
-  if (storageKind() === "netlify") {
+  if (kind === "netlify") {
     const contentType = extension === "jpg" ? "image/jpeg" : `image/${extension}`;
     const data = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
     await imageStore().set(filename, data, { metadata: { contentType } });
@@ -91,7 +115,6 @@ export async function saveImage(buffer: Buffer, extension: string): Promise<stri
 
   const directory = process.env.UPLOAD_DIR || path.join(process.cwd(), "data", "uploads");
   await mkdir(directory, { recursive: true });
-  // wx: never overwrite an existing file.
   await writeFile(path.join(/* turbopackIgnore: true */ directory, filename), buffer, { flag: "wx" });
   return `/api/uploads/${filename}`;
 }
@@ -102,7 +125,13 @@ export async function deleteImage(url: string): Promise<void> {
   if (url.startsWith("/api/uploads/")) {
     const filename = url.split("/").pop();
     if (!filename || !LOCAL_PATTERN.test(url)) return;
-    if (storageKind() === "netlify") {
+    const kind = storageKind();
+    if (kind === "r2") {
+      const bucket = r2Bucket();
+      if (bucket) await bucket.delete(filename);
+      return;
+    }
+    if (kind === "netlify") {
       try {
         await imageStore().delete(filename);
       } catch {

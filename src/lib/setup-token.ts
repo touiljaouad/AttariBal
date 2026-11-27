@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const TOKEN_FILE = path.join(process.cwd(), "data", "setup-token");
 let cached: string | null = null;
@@ -9,14 +10,26 @@ let cached: string | null = null;
  * Resolves the one-time setup token used to create the first administrator.
  *
  * Priority:
- *   1. ADMIN_SETUP_TOKEN environment variable (recommended for production)
- *   2. data/setup-token — generated once on the server and persisted
+ *   1. Cloudflare Worker runtime secret
+ *   2. process.env (local development / other Node.js hosts)
+ *   3. data/setup-token — generated once and persisted where writable
  *
- * The file fallback keeps setup reachable on hosts that regenerate the `.env`
- * file on every restart. The token never leaves the server: it is never sent to
- * the browser, only compared against the value typed on /setup.
+ * The token is never returned to the browser; it is only compared against the
+ * value submitted to the setup endpoint.
  */
 export async function getSetupToken(): Promise<string | null> {
+  // Read the binding from the active Worker request environment. In Workers,
+  // this is the authoritative source for dashboard-configured runtime secrets.
+  try {
+    const runtimeEnv = getCloudflareContext().env as unknown as Record<string, unknown>;
+    const runtimeToken = runtimeEnv.ADMIN_SETUP_TOKEN;
+    if (typeof runtimeToken === "string" && runtimeToken.length > 0) {
+      return runtimeToken;
+    }
+  } catch {
+    // getCloudflareContext is unavailable outside the Cloudflare runtime.
+  }
+
   if (process.env.ADMIN_SETUP_TOKEN) return process.env.ADMIN_SETUP_TOKEN;
   if (cached) return cached;
 

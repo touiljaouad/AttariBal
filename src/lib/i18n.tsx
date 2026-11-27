@@ -299,7 +299,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem("ataribal-lang");
-    if (stored === "ar" || stored === "fr") setLangState(stored);
+    if (stored === "ar" || stored === "fr") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restore the saved locale after hydration
+      setLangState(stored);
+    }
   }, []);
 
   useEffect(() => {

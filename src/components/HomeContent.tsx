@@ -19,7 +19,21 @@ type Props = {
   instagramUrl: string;
 };
 
-const editorialImages = ["/images/hero-editorial.jpg", "/images/store-editorial.jpg", "/images/sneakers-editorial.jpg"];
+function categoryImageFor(name: string) {
+  const value = name.toLocaleLowerCase();
+  const image = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1000&q=85`;
+
+  if (/sneaker|shoe|shoes|basket|chauss|footwear|حذاء|أحذية|سنيكرز/.test(value)) {
+    return image("photo-1542291026-7eec264c27ff");
+  }
+  if (/bag|sac|sacs|backpack|حقيبة|حقائب/.test(value)) {
+    return image("photo-1584917865442-de89df76afd3");
+  }
+  if (/accessor|montre|watch|cap|casquette|lunette|belt|ceinture|إكسسوار|اكسسوارات/.test(value)) {
+    return image("photo-1523275335684-37898b6baf30");
+  }
+  return image("photo-1490481651871-ab68de25d43d");
+}
 
 export default function HomeContent({ latest, featured, categories, brands, stores, whatsappUrl, instagramUrl }: Props) {
   const { t } = useLanguage();
@@ -69,9 +83,9 @@ export default function HomeContent({ latest, featured, categories, brands, stor
           </div>
           <p className="mb-8 max-w-lg text-sm text-white/45">{t("home.categoriesSub")}</p>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-            {categories.slice(0, 10).map((category, index) => (
+            {categories.slice(0, 10).map((category) => (
               <Link key={category.id} href={`/boutique?category=${category.id}`} className="group relative aspect-[4/5] overflow-hidden border border-white/10">
-                <Image src={editorialImages[index % editorialImages.length]} alt="" fill sizes="(max-width:768px) 50vw, 20vw" className="object-cover opacity-45 transition duration-700 group-hover:scale-110 group-hover:opacity-65" unoptimized />
+                <div aria-hidden="true" className="absolute inset-0 bg-cover opacity-65 transition duration-700 group-hover:scale-110 group-hover:opacity-85" style={{ backgroundImage: `url("${categoryImageFor(category.name)}")`, backgroundSize: "cover", backgroundPosition: "center" }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4">
                   <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#D4AF37]">{String(category.count).padStart(2, "0")} {t("catalog.results")}</p>
@@ -144,7 +158,7 @@ export default function HomeContent({ latest, featured, categories, brands, stor
       <section className="section-pad border-b border-white/[0.06]">
         <div className="container-wide grid items-center gap-10 lg:grid-cols-2">
           <div className="relative h-[420px] overflow-hidden border border-white/10">
-            <Image src="/images/store-editorial.jpg" alt="" fill sizes="(max-width:1024px) 100vw, 50vw" className="object-cover opacity-80" unoptimized />
+            <div role="img" aria-label="Collection éditoriale AttariBal" className="absolute inset-0 bg-cover opacity-90" style={{ backgroundImage: "url(https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=85)", backgroundSize: "cover", backgroundPosition: "center" }} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
             <div className="absolute bottom-6 start-6"><p className="eyebrow">@atari_bal</p><p className="mt-2 text-lg font-bold">Instagram</p></div>
           </div>
